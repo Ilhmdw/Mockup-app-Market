@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Hobbies – TCG Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50:  '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              300: '#fdba74',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            },
+            ink: '#0f0f0f',
+            muted: '#6b7280',
+            surface: '#fafaf9',
+            card: '#ffffff',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'DM Sans', sans-serif; }
+    h1, h2, h3, h4, .font-display { font-family: 'Syne', sans-serif; }
+
+    .navbar-blur {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.92);
+    }
+
+    .product-card {
+      transition: transform 0.22s cubic-bezier(.22,1,.36,1), box-shadow 0.22s ease;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.10);
+    }
+
+    .badge-ur   { background: linear-gradient(135deg,#7c3aed,#a855f7); }
+    .badge-holo { background: linear-gradient(135deg,#0ea5e9,#38bdf8); }
+    .badge-rare { background: linear-gradient(135deg,#f59e0b,#fbbf24); }
+    .badge-common { background:#e5e7eb; color:#374151; }
+
+    .filter-checkbox:checked + label {
+      color: #ea580c;
+      font-weight: 600;
+    }
+    .filter-checkbox:checked + label::before {
+      background: #ea580c;
+      border-color: #ea580c;
+    }
+
+    .cart-bounce { animation: cartPop 0.35s cubic-bezier(.22,1,.36,1); }
+    @keyframes cartPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    /* Hero gradient strip */
+    .hero-strip {
+      background: linear-gradient(135deg, #0f0f0f 0%, #1c1917 50%, #292524 100%);
+    }
+
+    /* Page fade in */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.55s cubic-bezier(.22,1,.36,1) both; }
+    .fade-up-d1 { animation-delay: 0.08s; }
+    .fade-up-d2 { animation-delay: 0.16s; }
+    .fade-up-d3 { animation-delay: 0.24s; }
+
+    /* Mobile sidebar overlay */
+    #filter-overlay { transition: opacity 0.25s; }
+    #filter-sidebar  { transition: transform 0.3s cubic-bezier(.22,1,.36,1); }
+  </style>
+</head>
+<body class="bg-surface text-ink">
+
+<!-- ============================
+     NAVBAR
+============================= -->
+<header class="navbar-blur sticky top-0 z-40 border-b border-gray-100 shadow-sm">
+  <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center gap-4 h-16">
+
+      <!-- Logo -->
+      <a href="#" class="flex-shrink-0 flex items-center gap-2 mr-4">
+        <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center">
+          <i class="fa-solid fa-cards-blank text-white text-sm"></i>
+        </div>
+        <span class="font-display font-800 text-xl tracking-tight text-ink">
+          Happy<span class="text-brand-500">Hobbies</span>
+        </span>
+      </a>
+
+      <!-- Search bar -->
+      <div class="flex-1 hidden sm:flex items-center relative max-w-xl">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-muted text-sm"></i>
+        <input
+          type="text"
+          placeholder="Cari kartu, set, atau rarity…"
+          class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-gray-100 border border-transparent text-sm focus:outline-none focus:border-brand-400 focus:bg-white transition-all placeholder-muted"
+        />
+      </div>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <!-- Mobile search -->
+        <button class="sm:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 text-muted">
+          <i class="fa-solid fa-magnifying-glass text-sm"></i>
+        </button>
+
+        <!-- Cart -->
+        <button id="cart-btn" class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 text-muted hover:bg-brand-50 hover:text-brand-500 transition-colors">
+          <i class="fa-solid fa-cart-shopping text-sm"></i>
+          <span id="cart-badge" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-brand-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+        </button>
+
+        <!-- Login -->
+        <a href="#" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium hover:border-brand-400 hover:text-brand-600 transition-colors">
+          <i class="fa-regular fa-user text-xs"></i> Masuk
+        </a>
+        <a href="#" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors shadow-sm">
+          Daftar
+        </a>
+
+        <!-- Mobile menu toggle -->
+        <button id="filter-toggle" class="sm:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 text-muted">
+          <i class="fa-solid fa-sliders text-sm"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+
+<!-- ============================
+     HERO STRIP
+============================= -->
+<section class="hero-strip py-10 px-4 sm:px-8 fade-up">
+  <div class="max-w-screen-xl mx-auto flex flex-col sm:flex-row items-center gap-6">
+    <div class="flex-1">
+      <span class="inline-block px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-xs font-semibold tracking-wider uppercase mb-3">New Arrivals 🔥</span>
+      <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
+        Kartu TCG Terlengkap<br/>
+        <span class="text-brand-400">di Satu Tempat.</span>
+      </h1>
+      <p class="mt-3 text-gray-400 text-sm sm:text-base max-w-md">
+        Pokémon, Yu-Gi-Oh!, One Piece, Digimon — semua kartu original dengan kondisi terjamin.
+      </p>
+    </div>
+    <div class="flex gap-3 flex-wrap">
+      <div class="bg-white/10 rounded-2xl px-5 py-4 text-center">
+        <div class="font-display text-2xl font-bold text-white">2.000+</div>
+        <div class="text-gray-400 text-xs mt-1">SKU Produk</div>
+      </div>
+      <div class="bg-white/10 rounded-2xl px-5 py-4 text-center">
+        <div class="font-display text-2xl font-bold text-white">100%</div>
+        <div class="text-gray-400 text-xs mt-1">Kartu Original</div>
+      </div>
+      <div class="bg-white/10 rounded-2xl px-5 py-4 text-center">
+        <div class="font-display text-2xl font-bold text-brand-400">PSA</div>
+        <div class="text-gray-400 text-xs mt-1">Graded Available</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================
+     MAIN CONTENT
+============================= -->
+<main class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex gap-6">
+
+  <!-- MOBILE OVERLAY -->
+  <div id="filter-overlay" class="fixed inset-0 bg-black/40 z-30 hidden opacity-0" onclick="closeFilter()"></div>
+
+  <!-- ============================
+       SIDEBAR FILTER
+  ============================= -->
+  <aside id="filter-sidebar" class="
+    fixed sm:static top-0 left-0 h-full sm:h-auto z-40 sm:z-auto
+    w-72 sm:w-56 lg:w-64 flex-shrink-0
+    bg-card sm:bg-transparent shadow-2xl sm:shadow-none
+    overflow-y-auto sm:overflow-visible
+    -translate-x-full sm:translate-x-0 transition-transform
+    p-5 sm:p-0
+  ">
+    <!-- Mobile header -->
+    <div class="flex items-center justify-between sm:hidden mb-5">
+      <span class="font-display font-bold text-lg">Filter</span>
+      <button onclick="closeFilter()" class="text-muted"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="space-y-6">
+
+      <!-- Expansion Set -->
+      <div>
+        <h3 class="font-display font-semibold text-xs uppercase tracking-widest text-muted mb-3">Expansion Set</h3>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded accent-brand-500" checked />
+            <span class="text-sm text-ink group-hover:text-brand-600 transition-colors">Scarlet &amp; Violet</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded accent-brand-500" />
+            <span class="text-sm text-ink group-hover:text-brand-600 transition-colors">Sword &amp; Shield</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded accent-brand-500" />
+            <span class="text-sm text-ink group-hover:text-brand-600 transition-colors">Sun &amp; Moon</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded accent-brand-500" />
+            <span class="text-sm text-ink group-hover:text-brand-600 transition-colors">Evolusi Mega</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded accent-brand-500" />
+            <span class="text-sm text-ink group-hover:text-brand-600 transition-colors">151 Set</span>
+          </label>
+        </div>
+      </div>
+
+      <hr class="border-gray-100" />
+
+      <!-- Rarity -->
+      <div>
+        <h3 class="font-display font-semibold text-xs uppercase tracking-widest text-muted mb-3">Rarity</h3>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded accent-brand-500" checked />
+            <span class="inline-flex items-center gap-1.5 text-sm">
+              <span class="w-2 h-2 rounded-full bg-purple-500"></span> Ultra Rare (UR)
+            </span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded accent-brand-500" checked />
+            <span class="inline-flex items-center gap-1.5 text-sm">
+              <span class="w-2 h-2 rounded-full bg-sky-400"></span> Holo Rare (HR)
+            </span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded accent-brand-500" />
+            <span class="inline-flex items-center gap-1.5 text-sm">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span> Rare (R)
+            </span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded accent-brand-500" />
+            <span class="inline-flex items-center gap-1.5 text-sm">
+              <span class="w-2 h-2 rounded-full bg-gray-300"></span> Common (C)
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <hr class="border-gray-100" />
+
+      <!-- Kondisi -->
+      <div>
+        <h3 class="font-display font-semibold text-xs uppercase tracking-widest text-muted mb-3">Kondisi Kartu</h3>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="kondisi" class="w-4 h-4 accent-brand-500" checked />
+            <span class="text-sm">Semua</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="kondisi" class="w-4 h-4 accent-brand-500" />
+            <span class="text-sm">Near Mint (NM)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="kondisi" class="w-4 h-4 accent-brand-500" />
+            <span class="text-sm">Lightly Played (LP)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="kondisi" class="w-4 h-4 accent-brand-500" />
+            <span class="text-sm">Played (PL)</span>
+          </label>
+        </div>
+      </div>
+
+      <hr class="border-gray-100" />
+
+      <!-- Harga Slider -->
+      <div>
+        <h3 class="font-display font-semibold text-xs uppercase tracking-widest text-muted mb-3">Rentang Harga</h3>
+        <div class="text-xs text-muted mb-2 flex justify-between">
+          <span>Rp 0</span><span>Rp 5.000.000</span>
+        </div>
+        <input type="range" min="0" max="5000000" value="3000000" class="w-full accent-brand-500" />
+        <p class="text-xs text-muted mt-1">Hingga: <strong class="text-ink">Rp 3.000.000</strong></p>
+      </div>
+
+      <button class="w-full py-2.5 rounded-xl bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-colors">
+        Terapkan Filter
+      </button>
+    </div>
+  </aside>
+
+
+  <!-- ============================
+       PRODUCT GRID
+  ============================= -->
+  <div class="flex-1 min-w-0">
+
+    <!-- Toolbar -->
+    <div class="flex items-center justify-between mb-5 fade-up fade-up-d1">
+      <div>
+        <p class="font-display font-semibold text-lg text-ink">Semua Produk</p>
+        <p class="text-xs text-muted mt-0.5">Menampilkan 8 dari 2.147 produk</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-muted hidden sm:block">Urutkan:</label>
+        <select class="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-brand-400">
+          <option>Terbaru</option>
+          <option>Harga Terendah</option>
+          <option>Harga Tertinggi</option>
+          <option>Populer</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 fade-up fade-up-d2" id="product-grid">
+
+      <!--
+        Gambar diambil dari Pokémon TCG API (api.pokemontcg.io).
+        Setiap src menggunakan endpoint resmi: https://images.pokemontcg.io/{setId}/{number}_hires.png
+        Set IDs terverifikasi: sv1=Scarlet&Violet Base, sv2=Paldea Evolved, sv3=Obsidian Flames,
+        sv3pt5=151, sv4=Paradox Rift, swsh4=Vivid Voltage, swsh7=Evolving Skies, swsh9=Brilliant Stars
+      -->
+
+      <!-- Card 1: Charizard ex SAR – Obsidian Flames (sv3 #228) -->
+      <div class="product-card bg-card rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer">
+        <div class="relative bg-gray-50 aspect-[3/4] flex items-center justify-center p-3">
+          <img
+            src="https://images.pokemontcg.io/sv3/228_hires.png"
+            alt="Charizard ex SAR"
+            class="w-full h-full object-contain"
+            onerror="this.onerror=null;this.src='https://placehold.co/240x336/fef3c7/d97706?text=Charizard+ex'"
+          />
+          <span class="absolute top-2 left-2 badge-ur text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Ultra Rare</span>
+        </div>
+        <div class="p-3">
+          <p class="font-display font-semibold text-sm text-ink leading-tight truncate">Charizard ex SAR – SV3</p>
+          <p class="text-xs text-muted mt-0.5">Obsidian Flames · Near Mint</p>
+          <div class="flex items-center justify-between mt-3">
+            <span class="font-display font-bold text-brand-500">Rp 1.990.000</span>
+            <button onclick="addToCart(this)" class="w-8 h-8 rounded-xl bg-brand-50 text-brand-500 hover:bg-brand-500 hover:text-white transition-colors flex items-center justify-center">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Mewtwo ex SAR – Pokémon 151 (sv3pt5 #205) -->
+      <div class="product-card bg-card rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer">
+        <div class="relative bg-gray-50 aspect-[3/4] flex items-center justify-center p-3">
+          <img
+            src="https://images.pokemontcg.io/sv3pt5/205_hires.png"
+            alt="Mewtwo ex SAR"
+            class="w-full h-full object-contain"
+            onerror="this.onerror=null;this.src='https://placehold.co/240x336/ede9fe/7c3aed?text=Mewtwo+ex'"
+          />
+          <span class="absolute top-2 left-2 badge-holo text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Holo Rare</span>
+        </div>
+        <div class="p-3">
+          <p class="font-display font-semibold text-sm text-ink leading-tight truncate">Mewtwo ex SAR – 151</p>
+          <p class="text-xs text-muted mt-0.5">Pokémon 151 · Near Mint</p>
+          <div class="flex items-center justify-between mt-3">
+            <span class="font-display font-bold text-brand-500">Rp 1.350.000</span>
+            <button onclick="addToCart(this)" class="w-8 h-8 rounded-xl bg-brand-50 text-brand-500 hover:bg-brand-500 hover:text-white transition-colors flex items-center justify-center">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Koraidon ex SAR – Scarlet & Violet Base (sv1 #252) -->
+      <div class="product-card bg-card rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer">
+        <div class="relative bg-gray-50 aspect-[3/4] flex items-center justify-center p-3">
+          <img
+            src="https://images.pokemontcg.io/sv1/252_hires.png"
+            alt="Koraidon ex SAR"
+            class="w-full h-full object-contain"
+            onerror="this.onerror=null;this.src='https://placehold.co/240x336/fee2e2/dc2626?text=Koraidon+ex'"
+          />
+          <span class="absolute top-2 left-2 badge-ur text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Ultra Rare</span>
+        </div>
+        <div class="p-3">
+          <p class="font-display font-semibold text-sm text-ink leading-tight truncate">Koraidon ex SAR – SV1</p>
+          <p class="text-xs text-muted mt-0.5">Scarlet &amp; Violet · Near Mint</p>
+          <div class="flex items-center justify-between mt-3">
+            <span class="font-display font-bold text-brand-500">Rp 1.490.000</span>
+            <button onclick="addToCart(this)" class="w-8 h-8 rounded-xl bg-brand-50 text-brand-500 hover:bg-brand-500 hover:text-white transition-colors flex items-center justify-center">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Pikachu VMAX RR – Vivid Voltage (swsh4 #188) -->
+      <div class="product-card bg-card rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer">
+        <div class="relative bg-gray-50 aspect-[3/4] flex items-center justify-center p-3">
+          <img
+            src="https://images.pokemontcg.io/swsh4/188_hires.png"
+            alt="Pikachu VMAX"
+            class="w-full h-full object-contain"
+            onerror="this.onerror=null;this.src='https://placehold.co/240x336/fefce8/ca8a04?text=Pikachu+VMAX'"
+          />
+          <span class="absolute top-2 left-2 badge-rare text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Rare</span>
+        </div>
+        <div class="p-3">
+          <p class="font-display font-semibold text-sm text-ink leading-tight truncate">Pikachu VMAX RR – SWSH4</p>
+          <p class="text-xs text-muted mt-0.5">Vivid Voltage · Lightly Played</p>
+          <div class="flex items-center justify-between mt-3">
+            <span class="font-display font-bold text-brand-500">Rp 850.000</span>
+            <button onclick="addToCart(this)" class="w-8 h-8 rounded-xl bg-brand-50 text-brand-500 hover:bg-brand-500 hover:text-white transition-colors flex items-center justify-center">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Gardevoir ex SAR – Paldea Evolved (sv2 #237) -->
+      <div class="product-card bg-card rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer">
+        <div class="relative bg-gray-50 aspect-[3/4] flex items-center justify-center p-3">
+          <img
+            src="https://images.pokemontcg.io/sv2/237_hires.png"
+            alt="Gardevoir ex SAR"
+            class="w-full h-full object-contain"
+            onerror="this.onerror=null;this.src='https://placehold.co/240x336/fdf2f8/db2777?text=Gardevoir+ex'"
+          />
+          <span class="absolute top-2 left-2 badge-holo text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Holo Rare</span>
+        </div>
+        <div class="p-3">
+          <p class="font-display font-semibold text-sm text-ink leading-tight truncate">Gardevoir ex SAR – SV2</p>
+          <p class="text-xs text-muted mt-0.5">Paldea Evolved · Near Mint</p>
+          <div class="flex items-center justify-between mt-3">
+            <span class="font-display font-bold text-brand-500">Rp 1.150.000</span>
+            <button onclick="addToCart(this)" class="w-8 h-8 rounded-xl bg-brand-50 text-brand-500 hover:bg-brand-500 hover:text-white transition-colors flex items-center justify-center">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6: Tyranitar ex RR – Obsidian Flames (sv3 #171) -->
+      <div class="product-card bg-card rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer">
+        <div class="relative bg-gray-50 aspect-[3/4] flex items-center justify-center p-3">
+          <img
+            src="https://images.pokemontcg.io/sv3/171_hires.png"
+            alt="Tyranitar ex"
+            class="w-full h-full object-contain"
+            onerror="this.onerror=null;this.src='https://placehold.co/240x336/f0fdf4/16a34a?text=Tyranitar+ex'"
+          />
+          <span class="absolute top-2 left-2 badge-ur text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Ultra Rare</span>
+        </div>
+        <div class="p-3">
+          <p class="font-display font-semibold text-sm text-ink leading-tight truncate">Tyranitar ex RR – SV3</p>
+          <p class="text-xs text-muted mt-0.5">Obsidian Flames · Near Mint</p>
+          <div class="flex items-center justify-between mt-3">
+            <span class="font-display font-bold text-brand-500">Rp 670.000</span>
+            <button onclick="addToCart(this)" class="w-8 h-8 rounded-xl bg-brand-50 text-brand-500 hover:bg-brand-500 hover:text-white transition-colors flex items-center justify-center">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 7: Umbreon VMAX RR – Evolving Skies (swsh7 #215) -->
+      <div class="product-card bg-card rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer">
+        <div class="relative bg-gray-50 aspect-[3/4] flex items-center justify-center p-3">
+          <img
+            src="https://images.pokemontcg.io/swsh7/215_hires.png"
+            alt="Umbreon VMAX"
+            class="w-full h-full object-contain"
+            onerror="this.onerror=null;this.src='https://placehold.co/240x336/1e1b4b/818cf8?text=Umbreon+VMAX'"
+          />
+          <span class="absolute top-2 left-2 badge-rare text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Rare</span>
+          <span class="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">SALE</span>
+        </div>
+        <div class="p-3">
+          <p class="font-display font-semibold text-sm text-ink leading-tight truncate">Umbreon VMAX – SWSH7</p>
+          <p class="text-xs text-muted mt-0.5">Evolving Skies · Played</p>
+          <div class="flex items-center justify-between mt-3">
+            <div>
+              <span class="font-display font-bold text-brand-500">Rp 490.000</span>
+              <span class="text-xs text-muted line-through ml-1">Rp 650.000</span>
+            </div>
+            <button onclick="addToCart(this)" class="w-8 h-8 rounded-xl bg-brand-50 text-brand-500 hover:bg-brand-500 hover:text-white transition-colors flex items-center justify-center">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 8: Miraidon ex SAR – Scarlet & Violet Base (sv1 #253) -->
+      <div class="product-card bg-card rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer">
+        <div class="relative bg-gray-50 aspect-[3/4] flex items-center justify-center p-3">
+          <img
+            src="https://images.pokemontcg.io/sv1/253_hires.png"
+            alt="Miraidon ex SAR"
+            class="w-full h-full object-contain"
+            onerror="this.onerror=null;this.src='https://placehold.co/240x336/eff6ff/2563eb?text=Miraidon+ex'"
+          />
+          <span class="absolute top-2 left-2 badge-holo text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Holo Rare</span>
+        </div>
+        <div class="p-3">
+          <p class="font-display font-semibold text-sm text-ink leading-tight truncate">Miraidon ex SAR – SV1</p>
+          <p class="text-xs text-muted mt-0.5">Scarlet &amp; Violet · Near Mint</p>
+          <div class="flex items-center justify-between mt-3">
+            <span class="font-display font-bold text-brand-500">Rp 1.250.000</span>
+            <button onclick="addToCart(this)" class="w-8 h-8 rounded-xl bg-brand-50 text-brand-500 hover:bg-brand-500 hover:text-white transition-colors flex items-center justify-center">
+              <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-center gap-2 mt-10 fade-up fade-up-d3">
+      <button class="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-muted hover:border-brand-400 hover:text-brand-500 transition-colors">
+        <i class="fa-solid fa-chevron-left text-xs"></i>
+      </button>
+      <button class="w-9 h-9 rounded-xl bg-brand-500 text-white text-sm font-semibold">1</button>
+      <button class="w-9 h-9 rounded-xl border border-gray-200 text-sm text-muted hover:border-brand-400 hover:text-brand-500 transition-colors">2</button>
+      <button class="w-9 h-9 rounded-xl border border-gray-200 text-sm text-muted hover:border-brand-400 hover:text-brand-500 transition-colors">3</button>
+      <span class="text-muted text-sm">…</span>
+      <button class="w-9 h-9 rounded-xl border border-gray-200 text-sm text-muted hover:border-brand-400 hover:text-brand-500 transition-colors">7</button>
+      <button class="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-muted hover:border-brand-400 hover:text-brand-500 transition-colors">
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+      </button>
+    </div>
+
+  </div><!-- /flex-1 -->
+
+</main>
+
+
+<!-- ============================
+     FOOTER
+============================= -->
+<footer class="mt-16 bg-ink text-gray-400">
+  <div class="max-w-screen-xl mx-auto px-6 py-10 grid grid-cols-2 sm:grid-cols-4 gap-8">
+    <div class="col-span-2 sm:col-span-1">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center">
+          <i class="fa-solid fa-cards-blank text-white text-xs"></i>
+        </div>
+        <span class="font-display font-bold text-white text-base">Happy<span class="text-brand-400">Hobbies</span></span>
+      </div>
+      <p class="text-xs leading-relaxed">Toko kartu TCG terpercaya di Indonesia. Original, bergaransi, dan pengiriman ke seluruh Indonesia.</p>
+    </div>
+    <div>
+      <p class="font-display font-semibold text-white text-sm mb-3">Koleksi</p>
+      <ul class="space-y-2 text-xs">
+        <li><a href="#" class="hover:text-brand-400 transition-colors">Pokémon TCG</a></li>
+        <li><a href="#" class="hover:text-brand-400 transition-colors">Yu-Gi-Oh!</a></li>
+        <li><a href="#" class="hover:text-brand-400 transition-colors">One Piece</a></li>
+        <li><a href="#" class="hover:text-brand-400 transition-colors">Digimon</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="font-display font-semibold text-white text-sm mb-3">Bantuan</p>
+      <ul class="space-y-2 text-xs">
+        <li><a href="#" class="hover:text-brand-400 transition-colors">FAQ</a></li>
+        <li><a href="#" class="hover:text-brand-400 transition-colors">Kebijakan Pengiriman</a></li>
+        <li><a href="#" class="hover:text-brand-400 transition-colors">Pengembalian</a></li>
+        <li><a href="#" class="hover:text-brand-400 transition-colors">Hubungi Kami</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="font-display font-semibold text-white text-sm mb-3">Ikuti Kami</p>
+      <div class="flex gap-3">
+        <a href="#" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-brand-500 transition-colors"><i class="fa-brands fa-instagram text-xs"></i></a>
+        <a href="#" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-brand-500 transition-colors"><i class="fa-brands fa-tiktok text-xs"></i></a>
+        <a href="#" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-brand-500 transition-colors"><i class="fa-brands fa-whatsapp text-xs"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-white/10 text-center py-4 text-xs px-4">
+    © 2025 Happy Hobbies. Semua hak dilindungi. Dibuat untuk Tugas Akhir.
+  </div>
+</footer>
+
+
+<!-- ============================
+     TOAST NOTIFICATION
+============================= -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 bg-ink text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-medium opacity-0 pointer-events-none transition-all translate-y-2" style="transition:opacity 0.3s, transform 0.3s">
+  <i class="fa-solid fa-check-circle text-green-400"></i>
+  <span>Kartu ditambahkan ke keranjang!</span>
+</div>
+
+
+<script>
+  // Smart image fallback
+  const CARD_API_IDS={"sv3/228":"sv3-228","sv3pt5/205":"sv3pt5-205","sv1/252":"sv1-252","swsh4/188":"swsh4-188","sv2/237":"sv2-237","sv3/171":"sv3-171","swsh7/215":"swsh7-215","sv1/253":"sv1-253"};
+  window.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll("#product-grid img").forEach(img=>{img.addEventListener("error",async function h(){this.removeEventListener("error",h);const m=this.src.match(/images\.pokemontcg\.io\/([^\/]+)\/(\d+)_hires/);if(!m)return;const id=CARD_API_IDS[m[1]+"/"+m[2]];if(!id)return;try{const r=await fetch("https://api.pokemontcg.io/v2/cards/"+id);const d=await r.json();if(d?.data?.images?.large)this.src=d.data.images.large;}catch(e){}});});});
+
+  // Cart counter
+  let cartCount = 0;
+  const cartBadge = document.getElementById('cart-badge');
+  const toast = document.getElementById('toast');
+
+  function addToCart(btn) {
+    cartCount++;
+    cartBadge.textContent = cartCount;
+    // animate cart icon
+    const cartBtn = document.getElementById('cart-btn');
+    cartBtn.classList.add('cart-bounce');
+    setTimeout(() => cartBtn.classList.remove('cart-bounce'), 350);
+    // toast
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(8px)';
+    }, 2000);
+  }
+
+  // Mobile filter sidebar
+  const filterToggle = document.getElementById('filter-toggle');
+  const filterSidebar = document.getElementById('filter-sidebar');
+  const filterOverlay = document.getElementById('filter-overlay');
+
+  filterToggle.addEventListener('click', () => {
+    filterSidebar.classList.remove('-translate-x-full');
+    filterOverlay.classList.remove('hidden');
+    setTimeout(() => filterOverlay.classList.remove('opacity-0'), 10);
+  });
+
+  function closeFilter() {
+    filterSidebar.classList.add('-translate-x-full');
+    filterOverlay.classList.add('opacity-0');
+    setTimeout(() => filterOverlay.classList.add('hidden'), 250);
+  }
+</script>
+
+</body>
+</html>
